@@ -1,0 +1,59 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Models (large files)
+models/*.onnx
+models/*.joblib
+models/*.pkl
+models/*.pt
+models/*.pth
+models/*.h5
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# Logs
+*.log
+logs/
+
+# Build
+build/
+coverage/
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
