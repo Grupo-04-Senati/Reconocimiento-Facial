@@ -1,11 +1,16 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from app.core.supabase_client import supabase_admin
-from app.services.face_service import face_service
-from app.services.storage_service import storage_service
-from app.services.embedding_service import embedding_service
 from app.core.logging_config import logger
 
 router = APIRouter(prefix="/api/personas", tags=["personas"])
+
+
+def _check_supabase():
+    if supabase_admin is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Supabase no conectado. Verifica la conexión a internet y las credenciales.",
+        )
 
 
 @router.post("")
@@ -14,7 +19,12 @@ async def registrar_persona(
     email: str = Form(...),
     imagen: UploadFile = File(...),
 ):
+    _check_supabase()
     try:
+        from app.services.face_service import face_service
+        from app.services.storage_service import storage_service
+        from app.services.embedding_service import embedding_service
+
         existing = (
             supabase_admin.table("personas")
             .select("id")
@@ -35,7 +45,6 @@ async def registrar_persona(
             raise HTTPException(status_code=400, detail="La imagen no debe exceder 5MB")
 
         embedding = face_service.get_embedding(image_bytes)
-
         image_url = storage_service.upload_face_image(persona_id, image_bytes)
 
         embedding_service.save_embedding(
@@ -64,6 +73,7 @@ async def registrar_persona(
 
 @router.get("")
 async def listar_personas():
+    _check_supabase()
     try:
         result = supabase_admin.table("personas").select("*").execute()
         return {"success": True, "personas": result.data}
@@ -74,6 +84,7 @@ async def listar_personas():
 
 @router.get("/{persona_id}")
 async def obtener_persona(persona_id: str):
+    _check_supabase()
     try:
         result = (
             supabase_admin.table("personas")
@@ -93,7 +104,10 @@ async def obtener_persona(persona_id: str):
 
 @router.delete("/{persona_id}")
 async def eliminar_persona(persona_id: str):
+    _check_supabase()
     try:
+        from app.services.storage_service import storage_service
+
         result = (
             supabase_admin.table("personas")
             .select("id")

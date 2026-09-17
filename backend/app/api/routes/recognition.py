@@ -1,18 +1,28 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.core.supabase_client import supabase_admin
 from app.core.config import get_settings
-from app.services.face_service import face_service
-from app.services.probability_service import probability_service
-from app.services.audit_service import audit_service
 from app.core.logging_config import logger
 
 router = APIRouter(prefix="/api/reconocimiento", tags=["reconocimiento"])
 settings = get_settings()
 
 
+def _check_supabase():
+    if supabase_admin is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Supabase no conectado. Verifica la conexión a internet y las credenciales.",
+        )
+
+
 @router.post("")
 async def reconocer(imagen: UploadFile = File(...)):
+    _check_supabase()
     try:
+        from app.services.face_service import face_service
+        from app.services.probability_service import probability_service
+        from app.services.audit_service import audit_service
+
         image_bytes = await imagen.read()
         face_data = face_service.get_embedding_with_quality(image_bytes)
         embedding = face_data["embedding"]
@@ -78,7 +88,10 @@ async def reconocer(imagen: UploadFile = File(...)):
 
 @router.get("/historial")
 async def historial():
+    _check_supabase()
     try:
+        from app.services.audit_service import audit_service
+
         logs = audit_service.get_recent_logs(limit=100)
         return {"success": True, "historial": logs}
     except Exception as e:
