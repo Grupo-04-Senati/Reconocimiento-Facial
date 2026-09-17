@@ -30,7 +30,7 @@ if "%opcion%"=="5" goto estado
 if "%opcion%"=="0" goto salir
 
 echo.
-echo  Opcion no valida. Intenta de nuevo.
+echo  Opcion no valida.
 timeout /t 2 >nul
 goto menu
 
@@ -40,12 +40,15 @@ goto menu
 :frontend
 cls
 echo.
-echo  Iniciando Frontend...
+echo  Abriendo Frontend en nueva ventana...
 echo.
-start "Frontend-RF" "%~dp0frontend\start.bat"
+
+set "FRONTEND_DIR=%~dp0frontend"
+
+start "Frontend-RF" cmd /k "title Frontend - Reconocimiento Facial && color 0A && echo. && echo  ======================================== && echo   Frontend - Reconocimiento Facial && echo   React + TypeScript + Vite && echo  ======================================== && echo. && cd /d "%FRONTEND_DIR%" && echo  Verificando Node.js... && node --version && npm --version && echo. && if not exist node_modules (echo  Instalando dependencias... && npm install && echo.) else (echo  Dependencias OK.) && echo. && echo  Iniciando servidor en http://localhost:5173 && echo  Presiona Ctrl+C para detener && echo  ======================================== && echo. && npm run dev"
+
 timeout /t 3 /nobreak >nul
-echo.
-echo  Frontend abierto en ventana nueva: http://localhost:5173
+echo  Frontend abierto: http://localhost:5173
 echo.
 echo  [Enter] Volver al menu
 pause >nul
@@ -57,12 +60,15 @@ goto menu
 :backend
 cls
 echo.
-echo  Iniciando Backend...
+echo  Abriendo Backend en nueva ventana...
 echo.
-start "Backend-RF" "%~dp0backend\start.bat"
+
+set "BACKEND_DIR=%~dp0backend"
+
+start "Backend-RF" cmd /k "title Backend - Reconocimiento Facial && color 0B && echo. && echo  ======================================== && echo   Backend - Reconocimiento Facial && echo   FastAPI + Python && echo  ======================================== && echo. && cd /d "%BACKEND_DIR%" && echo  Verificando Python... && python --version && echo. && if not exist venv (echo  Creando entorno virtual... && python -m venv venv) && call venv\Scripts\activate.bat && if not exist venv\Lib\site-packages\fastapi (echo  Instalando dependencias... && pip install -r requirements.txt --quiet) && echo. && echo  Iniciando servidor en http://localhost:8000 && echo  API Docs: http://localhost:8000/docs && echo  Presiona Ctrl+C para detener && echo  ======================================== && echo. && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+
 timeout /t 3 /nobreak >nul
-echo.
-echo  Backend abierto en ventana nueva: http://localhost:8000
+echo  Backend abierto: http://localhost:8000
 echo.
 echo  [Enter] Volver al menu
 pause >nul
@@ -74,17 +80,20 @@ goto menu
 :ambos
 cls
 echo.
-echo  Iniciando Backend y Frontend...
+echo  Abriendo Backend y Frontend...
 echo.
 
-:: Primero backend
+set "BACKEND_DIR=%~dp0backend"
+set "FRONTEND_DIR=%~dp0frontend"
+
 echo  [1/2] Abriendo Backend...
-start "Backend-RF" "%~dp0backend\start.bat"
+start "Backend-RF" cmd /k "title Backend - Reconocimiento Facial && color 0B && cd /d "%BACKEND_DIR%" && if not exist venv python -m venv venv && call venv\Scripts\activate.bat && if not exist venv\Lib\site-packages\fastapi pip install -r requirements.txt --quiet && echo. && echo  Backend: http://localhost:8000 && echo  Docs:    http://localhost:8000/docs && echo. && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+
 timeout /t 4 /nobreak >nul
 
-:: Luego frontend
 echo  [2/2] Abriendo Frontend...
-start "Frontend-RF" "%~dp0frontend\start.bat"
+start "Frontend-RF" cmd /k "title Frontend - Reconocimiento Facial && color 0A && cd /d "%FRONTEND_DIR%" && if not exist node_modules npm install && echo. && echo  Frontend: http://localhost:5173 && echo. && npm run dev"
+
 timeout /t 3 /nobreak >nul
 
 echo.
@@ -111,43 +120,45 @@ echo  ║   INSTALANDO DEPENDENCIAS                        ║
 echo  ╚══════════════════════════════════════════════════╝
 echo.
 
-:: Frontend
-echo  [1/2] Frontend - Verificando Node.js...
+echo  [1/2] Frontend...
+cd /d "%~dp0frontend"
 node --version >nul 2>&1
 if errorlevel 1 (
     echo   ERROR: Node.js no encontrado
 ) else (
     echo   Node.js OK
-    echo   Instalando paquetes npm...
-    cd frontend
-    call npm install
-    cd ..
-    echo   Frontend: dependencias instaladas.
+    if not exist "node_modules" (
+        echo   Instalando paquetes npm...
+        call npm install
+        echo   Frontend OK.
+    ) else (
+        echo   Dependencias ya instaladas.
+    )
 )
 
 echo.
-
-:: Backend
-echo  [2/2] Backend - Verificando Python...
+echo  [2/2] Backend...
+cd /d "%~dp0backend"
 python --version >nul 2>&1
 if errorlevel 1 (
     echo   ERROR: Python no encontrado
 ) else (
     echo   Python OK
-    if not exist "backend\venv" (
+    if not exist "venv\Scripts\python.exe" (
         echo   Creando entorno virtual...
-        cd backend
         python -m venv venv
-        cd ..
     )
-    echo   Instalando paquetes pip...
-    cd backend
     call venv\Scripts\activate.bat
-    pip install -r requirements.txt --quiet
-    cd ..
-    echo   Backend: dependencias instaladas.
+    if not exist "venv\Lib\site-packages\fastapi" (
+        echo   Instalando paquetes pip...
+        pip install -r requirements.txt --quiet
+        echo   Backend OK.
+    ) else (
+        echo   Dependencias ya instaladas.
+    )
 )
 
+cd /d "%~dp0"
 echo.
 echo  ╔══════════════════════════════════════════════════╗
 echo  ║   INSTALACION COMPLETADA                         ║
@@ -168,16 +179,15 @@ echo  ║   ESTADO DEL PROYECTO                            ║
 echo  ╚══════════════════════════════════════════════════╝
 echo.
 
-:: Node.js
 echo  --- Node.js ---
 node --version >nul 2>&1
 if errorlevel 1 (
     echo   [X] Node.js NO encontrado
 ) else (
     for /f "tokens=*" %%i in ('node --version 2^>^&1') do echo   [OK] %%i
+    for /f "tokens=*" %%i in ('npm --version 2^>^&1') do echo   [OK] npm %%i
 )
 
-:: Python
 echo.
 echo  --- Python ---
 python --version >nul 2>&1
@@ -187,34 +197,30 @@ if errorlevel 1 (
     for /f "tokens=*" %%i in ('python --version 2^>^&1') do echo   [OK] %%i
 )
 
-:: Frontend
 echo.
 echo  --- Frontend ---
 if exist "frontend\node_modules" (
     echo   [OK] Dependencias instaladas
 ) else (
-    echo   [!] Dependencias NO instaladas (ejecutar opcion 4)
+    echo   [!] Sin dependencias - ejecuta opcion 4
+)
+if exist "frontend\package.json" (
+    echo   [OK] package.json existe
 )
 
-:: Backend
 echo.
 echo  --- Backend ---
 if exist "backend\venv\Scripts\python.exe" (
     echo   [OK] Entorno virtual creado
 ) else (
-    echo   [!] Entorno virtual NO creado (ejecutar opcion 4)
+    echo   [!] Sin venv - ejecuta opcion 4
 )
-
-:: .env
-echo.
-echo  --- Configuracion ---
 if exist "backend\.env" (
-    echo   [OK] backend\.env existe
+    echo   [OK] .env existe
 ) else (
-    echo   [!] backend\.env NO existe
+    echo   [!] .env no encontrado
 )
 
-:: Git
 echo.
 echo  --- Git ---
 git --version >nul 2>&1
@@ -224,7 +230,6 @@ if errorlevel 1 (
     for /f "tokens=*" %%i in ('git --version 2^>^&1') do echo   [OK] %%i
 )
 
-:: Docker
 echo.
 echo  --- Docker ---
 docker --version >nul 2>&1
@@ -234,6 +239,7 @@ if errorlevel 1 (
     for /f "tokens=*" %%i in ('docker --version 2^>^&1') do echo   [OK] %%i
 )
 
+cd /d "%~dp0"
 echo.
 echo  [Enter] Volver al menu
 pause >nul
