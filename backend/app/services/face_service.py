@@ -1,7 +1,19 @@
-import cv2
 import numpy as np
-from insightface.app import FaceAnalysis
 from app.core.logging_config import logger
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    logger.warning("opencv-python no instalado. Detección de rostros deshabilitada.")
+
+try:
+    from insightface.app import FaceAnalysis
+    INSIGHTFACE_AVAILABLE = True
+except ImportError:
+    INSIGHTFACE_AVAILABLE = False
+    logger.warning("insightface no instalado. Detección de rostros deshabilitada.")
 
 
 class FaceService:
@@ -16,16 +28,33 @@ class FaceService:
     def __init__(self):
         if self._initialized:
             return
-        logger.info("Initializing InsightFace FaceAnalysis model...")
-        self.app = FaceAnalysis(
-            name="buffalo_l",
-            providers=["CPUExecutionProvider"],
-        )
-        self.app.prepare(ctx_id=0, det_size=(640, 640))
-        self._initialized = True
-        logger.info("FaceAnalysis model loaded successfully")
+        self.app = None
+        if INSIGHTFACE_AVAILABLE and CV2_AVAILABLE:
+            try:
+                logger.info("Initializing InsightFace FaceAnalysis model...")
+                self.app = FaceAnalysis(
+                    name="buffalo_l",
+                    providers=["CPUExecutionProvider"],
+                )
+                self.app.prepare(ctx_id=0, det_size=(640, 640))
+                self._initialized = True
+                logger.info("FaceAnalysis model loaded successfully")
+            except Exception as e:
+                logger.warning(f"Could not load InsightFace model: {e}")
+        else:
+            logger.warning("Face detection disabled - missing dependencies")
+
+    def _check_dependencies(self):
+        if not CV2_AVAILABLE:
+            raise ImportError("opencv-python no está instalado. Ejecuta: pip install opencv-python")
+        if not INSIGHTFACE_AVAILABLE:
+            raise ImportError("insightface no está instalado. Ejecuta: pip install insightface onnxruntime")
+        if self.app is None:
+            raise RuntimeError("Modelo de detección facial no inicializado")
 
     def detect_faces(self, image_bytes: bytes):
+        self._check_dependencies()
+        import cv2
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         if img is None:
@@ -40,6 +69,8 @@ class FaceService:
         return faces[0].embedding
 
     def get_embedding_with_quality(self, image_bytes: bytes):
+        self._check_dependencies()
+        import cv2
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         if img is None:

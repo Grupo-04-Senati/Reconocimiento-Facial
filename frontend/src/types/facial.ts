@@ -17,6 +17,7 @@ export interface RecognitionResult {
   probabilidad_calibrada?: number;
   calidad_imagen?: number;
   iluminacion?: number;
+  detail?: string;
 }
 
 export interface RecognitionResponse {
