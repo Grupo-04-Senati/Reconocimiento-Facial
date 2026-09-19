@@ -1,15 +1,19 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" }
-  ],
-  "headers": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,Authorization" }
-      ]
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "backend/api/index.py",
+      "use": "@vercel/python",
+      "config": { "runtime": "python3.12" }
     }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "backend/api/index.py" },
+    { "src": "/(.*)", "dest": "frontend/$1" }
   ]
 }

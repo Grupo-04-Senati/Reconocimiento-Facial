@@ -90,23 +90,16 @@ async def options_handler(path: str):
 
 @app.on_event("startup")
 async def startup_event():
-    """Evento de inicio: descarga modelos ONNX si estamos en Vercel.
+    """Evento de inicio: solo log. Modelos se cargan bajo demanda (lazy loading).
 
-    Justificación (PDF Sección 4): El motor de IA utiliza InsightFace
-    buffalo_l (SCRFD para detección + ArcFace R100 para embeddings de 512D).
-    Los pesos .onnx se almacenan en Supabase Storage y se descargan a /tmp
-    en el primer cold start.
+    Justificacion (PDF Seccion 4): InsightFace buffalo_l (SCRFD + ArcFace R100).
+    Modelos ONNX se descargan de Supabase Storage a /tmp solo cuando se necesitan,
+    NO al inicio para evitar timeout en cold start de Vercel.
     """
     logger.info("Starting Facial Recognition System API...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Model base path: {settings.MODELS_DIR}")
-
-    if settings.IS_VERCEL:
-        try:
-            from app.ml.model_loader import ensure_models_downloaded
-            ensure_models_downloaded()
-        except Exception as e:
-            logger.warning(f"Model download failed (will retry on demand): {e}")
+    logger.info("Models will be loaded on demand (lazy loading)")
 
 
 @app.on_event("shutdown")

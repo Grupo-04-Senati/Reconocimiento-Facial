@@ -21,13 +21,13 @@ dist/
 .vite/
 *.tsbuildinfo
 
-# Models (large files)
-models/*.onnx
-models/*.joblib
-models/*.pkl
-models/*.pt
-models/*.pth
-models/*.h5
+# Models (large files - descargados desde Supabase Storage)
+backend/models/*.onnx
+backend/models/*.joblib
+backend/models/*.pkl
+backend/models/*.pt
+backend/models/*.pth
+backend/models/*.h5
 
 # IDE
 .vscode/
