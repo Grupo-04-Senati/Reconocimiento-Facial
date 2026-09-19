@@ -12,7 +12,10 @@ ON face_embeddings
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
 
--- Recrear la funcion con la columna correcta "embedding"
+-- Eliminar funcion existente (necesario si los parametros cambiaron)
+DROP FUNCTION IF EXISTS match_face_embedding(vector, double precision, integer);
+
+-- Crear la funcion con la columna correcta "embedding" y JOIN con personas
 CREATE OR REPLACE FUNCTION match_face_embedding(
     query_embedding vector(512),
     match_threshold float DEFAULT 0.40,
@@ -21,6 +24,7 @@ CREATE OR REPLACE FUNCTION match_face_embedding(
 RETURNS TABLE (
     id int,
     persona_id UUID,
+    nombre TEXT,
     similitud float,
     distancia float
 )
@@ -31,10 +35,13 @@ BEGIN
     SELECT
         fe.id,
         fe.persona_id,
+        p.nombre,
         1 - (fe.embedding <=> query_embedding) AS similitud,
         (fe.embedding <=> query_embedding) AS distancia
     FROM face_embeddings fe
-    WHERE 1 - (fe.embedding <=> query_embedding) > match_threshold
+    JOIN personas p ON p.id = fe.persona_id
+    WHERE p.activo = TRUE
+      AND 1 - (fe.embedding <=> query_embedding) > match_threshold
     ORDER BY fe.embedding <=> query_embedding
     LIMIT match_count;
 END;

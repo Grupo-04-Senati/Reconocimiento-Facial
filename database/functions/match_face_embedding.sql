@@ -1,9 +1,13 @@
+-- Eliminar funcion existente primero
+DROP FUNCTION IF EXISTS match_face_embedding(vector, double precision, integer);
+
 CREATE OR REPLACE FUNCTION match_face_embedding(
   query_embedding VECTOR(512),
   match_threshold FLOAT DEFAULT 0.40,
   match_count INT DEFAULT 5
 )
 RETURNS TABLE (
+  id int,
   persona_id UUID,
   nombre TEXT,
   similitud FLOAT,
@@ -14,7 +18,8 @@ AS $$
 BEGIN
   RETURN QUERY
   SELECT
-    p.id AS persona_id,
+    fe.id,
+    fe.persona_id,
     p.nombre,
     1 - (fe.embedding <=> query_embedding) AS similitud,
     fe.embedding <=> query_embedding AS distancia
