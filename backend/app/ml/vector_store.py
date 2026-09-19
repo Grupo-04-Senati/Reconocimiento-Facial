@@ -53,17 +53,15 @@ class VectorStore:
         self,
         persona_id: str,
         embedding: np.ndarray,
-        modelo: str = "arcface",
-        image_url: str | None = None,
+        modelo: str = "buffalo_s",
     ) -> dict:
         embedding_str = _embedding_to_string(embedding)
 
         result = supabase_admin.table("face_embeddings").insert(
             {
-                "persona_id": persona_id,
+                "persona_id": str(persona_id),
                 "embedding": embedding_str,
                 "modelo": modelo,
-                "image_url": image_url,
             }
         ).execute()
 

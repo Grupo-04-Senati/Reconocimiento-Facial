@@ -13,16 +13,14 @@ class EmbeddingService:
         self,
         persona_id: str,
         embedding: np.ndarray,
-        modelo: str = "arcface",
-        image_url: str = None,
+        modelo: str = "buffalo_s",
     ) -> dict:
         embedding_str = "[" + ",".join(str(float(x)) for x in embedding) + "]"
         result = supabase_admin.table("face_embeddings").insert(
             {
-                "persona_id": persona_id,
+                "persona_id": str(persona_id),
                 "embedding": embedding_str,
                 "modelo": modelo,
-                "image_url": image_url,
             }
         ).execute()
         logger.info(f"Embedding saved for persona {persona_id}")

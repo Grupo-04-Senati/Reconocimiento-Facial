@@ -70,8 +70,7 @@ async def registrar_persona(
             vector_store.save_embedding(
                 persona_id=persona_id,
                 embedding=embedding,
-                modelo="arcface",
-                image_url=None,
+                modelo="buffalo_s",
             )
             print(f"[personas] Embedding guardado OK")
         except Exception as e:
@@ -124,8 +123,7 @@ async def guardar_rostro(persona_id: str, imagen: UploadFile = File(...)):
         vector_store.save_embedding(
             persona_id=persona_id,
             embedding=embedding,
-            modelo="arcface",
-            image_url=None,
+            modelo="buffalo_s",
         )
 
         return {
