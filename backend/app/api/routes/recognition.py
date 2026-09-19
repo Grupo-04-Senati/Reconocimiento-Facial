@@ -21,6 +21,8 @@ async def reconocer(imagen: UploadFile = File(...)):
     _check_supabase()
     try:
         from app.services.face_service import face_service
+        from app.services.audit_service import audit_service
+        from app.services.probability_service import probability_service
 
         print(f"[reconocimiento] Iniciando procesamiento de imagen")
         print(f"[reconocimiento] Modelo cargado: {face_service._initialized}")
