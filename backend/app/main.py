@@ -7,7 +7,8 @@ Justificación PDF:
 - Sección 15: Seguridad (CORS, autenticación, auditoría)
 
 En Vercel:
-  - Entry point: api/index.py → Mangum → FastAPI
+  - Entry point: backend/api/index.py importa esta variable `app`
+  - Vercel sirve la app ASGI directamente (no necesita Mangum)
   - Modelos ONNX se descargan de Supabase Storage a /tmp/models/
   - CORS maneja OPTIONS (preflight) automáticamente via CORSMiddleware
 """

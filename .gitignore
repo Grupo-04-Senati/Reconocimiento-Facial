@@ -55,5 +55,8 @@ build/
 coverage/
 htmlcov/
 
+# Vercel
+.vercel/
+
 # Jupyter
 .ipynb_checkpoints/

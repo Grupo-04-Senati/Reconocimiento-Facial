@@ -30,6 +30,7 @@ matplotlib==3.9.0
 # --- Database & Supabase ---
 supabase==2.7.0
 sqlalchemy==2.0.35
+psycopg2-binary==2.9.9
 pgvector==0.3.0
 
 # --- Security & Audit ---
