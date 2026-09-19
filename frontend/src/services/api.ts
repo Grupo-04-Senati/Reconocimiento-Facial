@@ -6,10 +6,9 @@ import type {
   PredictionResponse,
 } from '../types/facial.ts'
 
-// En Vercel: frontend y backend comparten dominio, /api/* se redirige al backend.
-// En desarrollo local: proxy de vite redirige /api a localhost:8000.
-// VITE_API_URL permite override manual si es necesario.
-const API_URL = import.meta.env.VITE_API_URL || ''
+// VITE_API_URL: URL del backend (Render en produccion, localhost en desarrollo)
+// Si no esta definida, usa el mismo dominio (para Vercel con rewrites o desarrollo local)
+const API_URL = import.meta.env.VITE_API_URL || window.location.origin
 
 export const api = axios.create({
   baseURL: API_URL,
