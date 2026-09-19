@@ -4,9 +4,12 @@ import type {
   RecognitionResponse,
   HistorialEntry,
   PredictionResponse,
-} from '../types/facial'
+} from '../types/facial.ts'
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+// En Vercel, frontend y backend comparten el mismo dominio.
+// Las peticiones /api/* se redirigen al backend via vercel.json rewrites.
+// En desarrollo local, el proxy de vite redirige /api a localhost:8000.
+const API_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 export const api = axios.create({
   baseURL: API_URL,

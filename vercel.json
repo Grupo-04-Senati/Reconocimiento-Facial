@@ -1,0 +1,41 @@
+{
+  "builds": [
+    {
+      "src": "backend/api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxDuration": 60,
+        "includeFiles": [
+          "backend/app/**",
+          "backend/models/**"
+        ]
+      }
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/api/index.py"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/index.html"
+    }
+  ],
+  "outputDirectory": "frontend/dist",
+  "installCommand": "cd frontend && npm install",
+  "buildCommand": "cd frontend && npm run vercel-build",
+  "env": {
+    "PYTHONPATH": "backend"
+  }
+}

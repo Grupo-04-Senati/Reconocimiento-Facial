@@ -32,11 +32,20 @@ class FaceService:
         if INSIGHTFACE_AVAILABLE and CV2_AVAILABLE:
             try:
                 logger.info("Initializing InsightFace FaceAnalysis model...")
-                self.app = FaceAnalysis(
-                    name="buffalo_l",
-                    providers=["CPUExecutionProvider"],
-                )
-                self.app.prepare(ctx_id=0, det_size=(640, 640))
+                from app.core.config import get_settings
+                settings = get_settings()
+
+                if settings.IS_VERCEL:
+                    # En Vercel, usar model_loader para ensure download
+                    from app.ml.model_loader import get_face_analysis
+                    self.app = get_face_analysis()
+                else:
+                    self.app = FaceAnalysis(
+                        name="buffalo_l",
+                        providers=["CPUExecutionProvider"],
+                    )
+                    self.app.prepare(ctx_id=0, det_size=(640, 640))
+
                 self._initialized = True
                 logger.info("FaceAnalysis model loaded successfully")
             except Exception as e:
@@ -46,7 +55,7 @@ class FaceService:
 
     def _check_dependencies(self):
         if not CV2_AVAILABLE:
-            raise ImportError("opencv-python no está instalado. Ejecuta: pip install opencv-python")
+            raise ImportError("opencv-python-headless no está instalado. Ejecuta: pip install opencv-python-headless")
         if not INSIGHTFACE_AVAILABLE:
             raise ImportError("insightface no está instalado. Ejecuta: pip install insightface onnxruntime")
         if self.app is None:
