@@ -1,3 +1,8 @@
+"""DEPRECATED: Usar app.ml.vector_store en su lugar.
+
+Este módulo se mantiene por compatibilidad. El módulo vector_store.py
+centraliza toda la lógica de pgvector con índice HNSW.
+"""
 import numpy as np
 from app.core.supabase_client import supabase_admin
 from app.core.logging_config import logger

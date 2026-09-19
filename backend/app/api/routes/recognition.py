@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.core.supabase_client import supabase_admin
 from app.core.config import get_settings
 from app.core.logging_config import logger
+from app.ml.vector_store import vector_store
 
 router = APIRouter(prefix="/api/reconocimiento", tags=["reconocimiento"])
 settings = get_settings()
@@ -27,17 +28,13 @@ async def reconocer(imagen: UploadFile = File(...)):
         face_data = face_service.get_embedding_with_quality(image_bytes)
         embedding = face_data["embedding"]
 
-        embedding_str = "[" + ",".join(str(float(x)) for x in embedding) + "]"
-        result = supabase_admin.rpc(
-            "match_face_embedding",
-            {
-                "query_embedding": embedding_str,
-                "match_threshold": settings.UMBRAL_SIMILITUD,
-                "match_count": 1,
-            },
-        ).execute()
+        matches = vector_store.search_similar(
+            query_embedding=embedding,
+            threshold=settings.UMBRAL_SIMILITUD,
+            match_count=5,
+        )
 
-        if not result.data:
+        if not matches:
             audit_service.log_recognition(
                 persona_id=None,
                 similitud=0.0,
@@ -47,19 +44,19 @@ async def reconocer(imagen: UploadFile = File(...)):
             )
             return {"success": True, "coincide": False, "resultado": None}
 
-        match = result.data[0]
+        best_match = matches[0]
         features = {
-            "similitud": match["similitud"],
-            "distancia": match["distancia"],
+            "similitud": best_match["similitud"],
+            "distancia": best_match["distancia"],
             "calidad_imagen": face_data["quality"],
             "iluminacion": face_data["illumination"],
         }
         prob = probability_service.predecir(features)
 
         audit_service.log_recognition(
-            persona_id=match["persona_id"],
-            similitud=match["similitud"],
-            distancia=match["distancia"],
+            persona_id=best_match["persona_id"],
+            similitud=best_match["similitud"],
+            distancia=best_match["distancia"],
             umbral=settings.UMBRAL_SIMILITUD,
             coincide=True,
             probabilidad_calibrada=prob,
@@ -68,16 +65,25 @@ async def reconocer(imagen: UploadFile = File(...)):
         return {
             "success": True,
             "resultado": {
-                "persona_id": match["persona_id"],
-                "nombre": match["nombre"],
-                "similitud": round(match["similitud"], 4),
-                "distancia": round(match["distancia"], 4),
+                "persona_id": best_match["persona_id"],
+                "nombre": best_match["nombre"],
+                "similitud": round(best_match["similitud"], 4),
+                "distancia": round(best_match["distancia"], 4),
                 "umbral": settings.UMBRAL_SIMILITUD,
                 "coincide": True,
                 "probabilidad_calibrada": prob,
                 "calidad_imagen": round(face_data["quality"], 4),
                 "iluminacion": round(face_data["illumination"], 4),
             },
+            "top_matches": [
+                {
+                    "persona_id": m["persona_id"],
+                    "nombre": m["nombre"],
+                    "similitud": round(m["similitud"], 4),
+                    "distancia": round(m["distancia"], 4),
+                }
+                for m in matches
+            ],
         }
 
     except ValueError as e:

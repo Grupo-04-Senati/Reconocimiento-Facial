@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     FACE_MODEL_PATH: str = "./models/arcface.onnx"
     ML_MODEL_PATH: str = "./models/probability_model.joblib"
-    UMBRAL_SIMILITUD: float = 0.75
+    UMBRAL_SIMILITUD: float = 0.40
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "INFO"
 

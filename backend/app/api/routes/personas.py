@@ -23,7 +23,7 @@ async def registrar_persona(
     try:
         from app.services.face_service import face_service
         from app.services.storage_service import storage_service
-        from app.services.embedding_service import embedding_service
+        from app.ml.vector_store import vector_store
 
         existing = (
             supabase_admin.table("personas")
@@ -47,7 +47,7 @@ async def registrar_persona(
         embedding = face_service.get_embedding(image_bytes)
         image_url = storage_service.upload_face_image(persona_id, image_bytes)
 
-        embedding_service.save_embedding(
+        vector_store.save_embedding(
             persona_id=persona_id,
             embedding=embedding,
             modelo="arcface",
@@ -77,7 +77,7 @@ async def guardar_rostro(persona_id: str, imagen: UploadFile = File(...)):
     try:
         from app.services.face_service import face_service
         from app.services.storage_service import storage_service
-        from app.services.embedding_service import embedding_service
+        from app.ml.vector_store import vector_store
 
         existing = (
             supabase_admin.table("personas")
@@ -95,7 +95,7 @@ async def guardar_rostro(persona_id: str, imagen: UploadFile = File(...)):
         embedding = face_service.get_embedding(image_bytes)
         image_url = storage_service.upload_face_image(persona_id, image_bytes)
 
-        embedding_service.save_embedding(
+        vector_store.save_embedding(
             persona_id=persona_id,
             embedding=embedding,
             modelo="arcface",

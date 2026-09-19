@@ -8,5 +8,7 @@ CREATE TABLE IF NOT EXISTS face_embeddings (
 );
 
 CREATE INDEX idx_face_embeddings_persona ON face_embeddings(persona_id);
-CREATE INDEX idx_face_embeddings_vector ON face_embeddings
-  USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+CREATE INDEX idx_face_embeddings_hnsw ON face_embeddings
+  USING hnsw (embedding vector_cosine_ops)
+  WITH (m = 16, ef_construction = 64);

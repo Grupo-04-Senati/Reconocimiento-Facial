@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION match_face_embedding(
   query_embedding VECTOR(512),
-  match_threshold FLOAT DEFAULT 0.75,
+  match_threshold FLOAT DEFAULT 0.40,
   match_count INT DEFAULT 5
 )
 RETURNS TABLE (
