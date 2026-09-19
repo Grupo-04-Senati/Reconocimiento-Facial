@@ -6,17 +6,23 @@ import type {
   PredictionResponse,
 } from '../types/facial.ts'
 
-// Backend en Render (produccion) o localhost (desarrollo)
-const API_URL = import.meta.env.VITE_API_URL || 'https://reconocimiento-facial-backend.onrender.com'
+// Backend en Railway (produccion) o localhost (desarrollo)
+// Las rutas ya incluyen /api/, asi que baseURL NO lleva /api
+const API_BASE = import.meta.env.VITE_API_URL || 'https://reconocimiento-facial-production-1b3a.up.railway.app'
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  timeout: 60000,
 })
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      console.warn('Request timeout, retrying...')
+      return api.request(error.config)
+    }
     console.error('API Error:', error.response?.data || error.message)
     return Promise.reject(error)
   }
