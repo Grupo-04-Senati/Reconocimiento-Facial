@@ -56,15 +56,29 @@ async def registrar_persona(
             raise HTTPException(status_code=400, detail="La imagen no debe exceder 5MB")
 
         print(f"[personas] Obteniendo embedding facial...")
-        embedding = face_service.get_embedding(image_bytes)
+        try:
+            embedding = face_service.get_embedding(image_bytes)
+            print(f"[personas] Embedding obtenido: shape={embedding.shape}")
+        except Exception as e:
+            print(f"[personas] ERROR get_embedding: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
         print(f"[personas] Guardando embedding en pgvector...")
-        vector_store.save_embedding(
-            persona_id=persona_id,
-            embedding=embedding,
-            modelo="arcface",
-            image_url=None,
-        )
+        try:
+            vector_store.save_embedding(
+                persona_id=persona_id,
+                embedding=embedding,
+                modelo="arcface",
+                image_url=None,
+            )
+            print(f"[personas] Embedding guardado OK")
+        except Exception as e:
+            print(f"[personas] ERROR save_embedding: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
         print(f"[personas] Registro exitoso: {nombre} ({email})")
 
