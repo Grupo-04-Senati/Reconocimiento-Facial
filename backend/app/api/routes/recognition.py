@@ -21,10 +21,19 @@ async def reconocer(imagen: UploadFile = File(...)):
     _check_supabase()
     try:
         from app.services.face_service import face_service
-        from app.services.probability_service import probability_service
-        from app.services.audit_service import audit_service
+
+        print(f"[reconocimiento] Iniciando procesamiento de imagen")
+        print(f"[reconocimiento] Modelo cargado: {face_service._initialized}")
+
+        if not face_service._initialized:
+            raise HTTPException(
+                status_code=503,
+                detail="Modelo IA no disponible. Intenta de nuevo en unos segundos.",
+            )
 
         image_bytes = await imagen.read()
+        print(f"[reconocimiento] Imagen bytes: {len(image_bytes)}")
+
         face_data = face_service.get_embedding_with_quality(image_bytes)
         embedding = face_data["embedding"]
 

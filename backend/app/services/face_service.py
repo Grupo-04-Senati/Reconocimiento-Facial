@@ -32,19 +32,18 @@ class FaceService:
         if INSIGHTFACE_AVAILABLE and CV2_AVAILABLE:
             try:
                 logger.info("Initializing InsightFace FaceAnalysis model...")
-                from app.core.config import get_settings
-                settings = get_settings()
+                import os
 
-                if settings.IS_VERCEL:
-                    # En Vercel, usar model_loader para ensure download
-                    from app.ml.model_loader import get_face_analysis
-                    self.app = get_face_analysis()
-                else:
-                    self.app = FaceAnalysis(
-                        name="buffalo_s",
-                        providers=["CPUExecutionProvider"],
-                    )
-                    self.app.prepare(ctx_id=0, det_size=(640, 640))
+                model_root = "/root/.insightface"
+                if not os.path.exists(os.path.join(model_root, "models", "buffalo_s")):
+                    model_root = None
+
+                self.app = FaceAnalysis(
+                    name="buffalo_s",
+                    root=model_root,
+                    providers=["CPUExecutionProvider"],
+                )
+                self.app.prepare(ctx_id=0, det_size=(640, 640))
 
                 self._initialized = True
                 logger.info("FaceAnalysis model loaded successfully")
