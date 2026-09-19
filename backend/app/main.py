@@ -6,20 +6,14 @@ Justificación PDF:
 - Sección 10: API REST con endpoints documentados
 - Sección 15: Seguridad (CORS, autenticación, auditoría)
 
-En Vercel (production):
-  - Modelos .onnx se descargan de Supabase Storage a /tmp/models/
-  - Sistema de archivos read-only excepto /tmp
-  - Cold start: modelos se cargan bajo demanda (lazy loading)
-
-En desarrollo local:
-  - Modelos en ./models/
-  - uvicorn app.main:app --reload
+En Vercel:
+  - Entry point: api/index.py → Mangum → FastAPI
+  - Modelos ONNX se descargan de Supabase Storage a /tmp/models/
+  - CORS maneja OPTIONS (preflight) automáticamente via CORSMiddleware
 """
-import os
-import sys
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.api.routes import health, personas, recognition, probabilities, models
 from app.core.config import get_settings
 from app.core.logging_config import logger
@@ -36,6 +30,7 @@ app = FastAPI(
 )
 
 # CORS: permitir frontend en Vercel y desarrollo local
+# CORSMiddleware maneja OPTIONS (preflight) automáticamente
 _cors_origins = [
     "http://localhost:5173",
     "http://localhost:3000",
@@ -76,6 +71,22 @@ async def api_root():
     }
 
 
+# Manejador explícito para OPTIONS (preflight CORS)
+# Aunque CORSMiddleware lo maneja, este endpoint garantiza respuestas 200
+@app.options("/{path:path}")
+async def options_handler(path: str):
+    """Maneja requests OPTIONS (preflight CORS) para todos los endpoints."""
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization",
+            "Access-Control-Max-Age": "86400",
+        },
+    )
+
+
 @app.on_event("startup")
 async def startup_event():
     """Evento de inicio: descarga modelos ONNX si estamos en Vercel.
@@ -89,7 +100,6 @@ async def startup_event():
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Model base path: {settings.MODELS_DIR}")
 
-    # En Vercel, descargar modelos desde Supabase Storage
     if settings.IS_VERCEL:
         try:
             from app.ml.model_loader import ensure_models_downloaded
