@@ -6,9 +6,8 @@ import type {
   PredictionResponse,
 } from '../types/facial.ts'
 
-// VITE_API_URL: URL del backend (Render en produccion, localhost en desarrollo)
-// Si no esta definida, usa el mismo dominio (para Vercel con rewrites o desarrollo local)
-const API_URL = import.meta.env.VITE_API_URL || window.location.origin
+// Backend en Render (produccion) o localhost (desarrollo)
+const API_URL = import.meta.env.VITE_API_URL || 'https://reconocimiento-facial-backend.onrender.com'
 
 export const api = axios.create({
   baseURL: API_URL,

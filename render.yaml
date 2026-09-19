@@ -1,14 +1,16 @@
 services:
   - type: web
-    name: reconocimiento-facial-api
+    name: reconocimiento-facial-backend
     runtime: docker
-    dockerfilePath: ./Dockerfile
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
     autoDeploy: true
     branch: main
-    healthCheckPath: /api/health
     envVars:
-      - key: ENVIRONMENT
-        value: production
+      - key: DATABASE_URL
+        sync: false
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_ANON_KEY
@@ -19,14 +21,14 @@ services:
         value: face-images
       - key: SUPABASE_MODELS_BUCKET
         value: face-models
-      - key: DATABASE_URL
-        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: UMBRAL_SIMILITUD
         value: "0.40"
       - key: UMBRAL_LIVENESS
         value: "0.85"
+      - key: ENVIRONMENT
+        value: production
       - key: CORS_ORIGINS
         value: "https://reconocimiento-facial-xi.vercel.app"
       - key: LOG_LEVEL
