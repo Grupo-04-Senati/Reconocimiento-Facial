@@ -1,16 +1,10 @@
 """Descarga y carga de modelos ONNX desde Supabase Storage.
 
-Justificación (PDF Sección 4 y 5):
-  - Modelo DL: InsightFace buffalo_l (SCRFD detección + ArcFace R100 embeddings)
+Justificacion (PDF Seccion 4 y 5):
+  - Modelo DL: InsightFace buffalo_s (SCRFD deteccion + ArcFace R100 embeddings)
   - Embedding: 512 dimensiones normalizadas (normed_embedding)
-  - En Vercel, el filesystem es read-only excepto /tmp, por lo que los
-    modelos se descargan de Supabase Storage a /tmp/models/ bajo demanda.
-
-Estrategia de carga:
-  1. Verificar si el modelo ya existe en /tmp/models/
-  2. Si no existe, descargarlo desde Supabase Storage
-  3. Cargar en memoria con lazy loading (solo cuando se necesita)
-  4. Manejar errores de red o integridad
+  - buffalo_s es 4x mas ligero que buffalo_l (~125 MB vs ~500 MB)
+  - Precision: ~99.5% vs 99.83% (perdida insignificante)
 """
 import os
 import hashlib
@@ -19,12 +13,10 @@ from app.core.logging_config import logger
 
 settings = get_settings()
 
-# Modelos que componen buffalo_l
-BUFFALO_L_FILES = {
-    "det_10g.onnx": "detección de rostros (SCRFD)",
+# Modelos que componen buffalo_s (mas ligero que buffalo_l)
+BUFFALO_S_FILES = {
+    "det_500m.onnx": "deteccion de rostros (SCRFD 500M)",
     "w600k_r50.onnx": "embeddings faciales (ArcFace R100)",
-    "2d106det.onnx": "landmarks faciales",
-    "genderage.onnx": "estimación de género y edad",
 }
 
 _face_analysis_instance = None
@@ -40,7 +32,7 @@ def ensure_models_downloaded() -> bool:
     os.makedirs(models_dir, exist_ok=True)
 
     all_ok = True
-    for filename, description in BUFFALO_L_FILES.items():
+    for filename, description in BUFFALO_S_FILES.items():
         filepath = os.path.join(models_dir, filename)
         if os.path.exists(filepath) and os.path.getsize(filepath) > 1000:
             logger.info(f"Modelo existente: {filename} ({description})")
@@ -111,13 +103,11 @@ def get_face_analysis():
     }
 
     if settings.IS_VERCEL:
-        # InsightFace busca modelos en ~/.insightface/models/buffalo_l
-        # En Vercel redirigimos a /tmp
-        home_model_dir = os.path.expanduser("~/.insightface/models/buffalo_l")
+        home_model_dir = os.path.expanduser("~/.insightface/models/buffalo_s")
         os.makedirs(home_model_dir, exist_ok=True)
 
         models_dir = settings.MODELS_DIR
-        for filename in BUFFALO_L_FILES:
+        for filename in BUFFALO_S_FILES:
             src = os.path.join(models_dir, filename)
             dst = os.path.join(home_model_dir, filename)
             if os.path.exists(src) and not os.path.exists(dst):
@@ -126,8 +116,8 @@ def get_face_analysis():
 
         model_kwargs["root"] = os.path.expanduser("~/.insightface")
 
-    logger.info("Inicializando InsightFace FaceAnalysis (buffalo_l)...")
-    fa = FaceAnalysis(name="buffalo_l", **model_kwargs)
+    logger.info("Inicializando InsightFace FaceAnalysis (buffalo_s)...")
+    fa = FaceAnalysis(name="buffalo_s", **model_kwargs)
     fa.prepare(ctx_id=0, det_size=(640, 640))
 
     _face_analysis_instance = fa
@@ -143,7 +133,7 @@ def get_model_status() -> dict:
     """
     models_dir = settings.MODELS_DIR
     files_status = {}
-    for filename, description in BUFFALO_L_FILES.items():
+    for filename, description in BUFFALO_S_FILES.items():
         filepath = os.path.join(models_dir, filename)
         exists = os.path.exists(filepath) and os.path.getsize(filepath) > 1000
         files_status[filename] = {

@@ -41,7 +41,7 @@ class FaceService:
                     self.app = get_face_analysis()
                 else:
                     self.app = FaceAnalysis(
-                        name="buffalo_l",
+                        name="buffalo_s",
                         providers=["CPUExecutionProvider"],
                     )
                     self.app.prepare(ctx_id=0, det_size=(640, 640))
