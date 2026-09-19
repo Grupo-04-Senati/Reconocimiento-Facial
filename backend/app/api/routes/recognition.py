@@ -95,12 +95,10 @@ async def reconocer(imagen: UploadFile = File(...)):
 
 @router.get("/historial")
 async def historial():
-    _check_supabase()
     try:
         from app.services.audit_service import audit_service
-
         logs = audit_service.get_recent_logs(limit=100)
-        return {"success": True, "historial": logs}
+        return {"success": True, "historial": logs or []}
     except Exception as e:
         logger.error(f"Error fetching history: {e}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor")
+        return {"success": True, "historial": [], "warning": f"Error: {str(e)[:100]}"}

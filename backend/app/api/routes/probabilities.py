@@ -1,37 +1,46 @@
 from fastapi import APIRouter, HTTPException
-from app.core.supabase_client import supabase_admin
 from app.core.logging_config import logger
 
 router = APIRouter(prefix="/api/probabilidades", tags=["probabilidades"])
 
 
-def _check_supabase():
-    if supabase_admin is None:
-        raise HTTPException(
-            status_code=503,
-            detail="Supabase no conectado. Verifica la conexión a internet y las credenciales.",
-        )
+def _get_supabase():
+    try:
+        from app.core.supabase_client import supabase_admin
+        return supabase_admin
+    except Exception as e:
+        print(f"[probabilities] supabase error: {e}")
+        return None
 
 
 @router.post("/prediccion")
 async def predecir(data: dict):
     try:
         from app.services.probability_service import probability_service
-
         prob = probability_service.predecir(data)
         return {"success": True, "probabilidad_calibrada": prob}
     except Exception as e:
         logger.error(f"Prediction error: {e}")
-        raise HTTPException(status_code=500, detail="Error en la predicción")
+        raise HTTPException(status_code=500, detail="Error en la prediccion")
 
 
 @router.get("/estadisticas")
 async def estadisticas():
-    _check_supabase()
+    sb = _get_supabase()
+    if sb is None:
+        return {
+            "success": True,
+            "estadisticas": {
+                "total_reconocimientos": 0,
+                "coincidencias_positivas": 0,
+                "tasa_exito": 0.0,
+            },
+            "warning": "Supabase no disponible",
+        }
     try:
-        total = supabase_admin.table("recognition_logs").select("*", count="exact").execute()
+        total = sb.table("recognition_logs").select("*", count="exact").execute()
         positivos = (
-            supabase_admin.table("recognition_logs")
+            sb.table("recognition_logs")
             .select("*", count="exact")
             .eq("coincide", True)
             .execute()
@@ -49,4 +58,12 @@ async def estadisticas():
         }
     except Exception as e:
         logger.error(f"Stats error: {e}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor")
+        return {
+            "success": True,
+            "estadisticas": {
+                "total_reconocimientos": 0,
+                "coincidencias_positivas": 0,
+                "tasa_exito": 0.0,
+            },
+            "warning": f"Error consultando BD: {str(e)[:100]}",
+        }

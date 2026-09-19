@@ -1,15 +1,12 @@
 """
 Aplicacion FastAPI - Sistema Inteligente de Reconocimiento Facial.
-
-En Vercel:
-  - Entry point: backend/api/index.py importa variable `app`
-  - Imports pesados (insightface, onnxruntime) son LAZY
-  - /api/health SIEMPRE responde 200, sin dependencias
-  - /api/debug reporta estado del sistema
 """
 import sys
 import os
+import asyncio
+import time
 from datetime import datetime, timezone
+from functools import wraps
 
 print("[main.py] Iniciando carga")
 
@@ -61,6 +58,58 @@ app.add_middleware(
 print("[main.py] CORS configurado")
 
 
+_face_analysis = None
+
+
+def get_face_analysis():
+    global _face_analysis
+    if _face_analysis is not None:
+        return _face_analysis
+    try:
+        from insightface.app import FaceAnalysis
+        model_root = "/root/.insightface"
+        if not os.path.exists(os.path.join(model_root, "models", "buffalo_s")):
+            model_root = None
+        _face_analysis = FaceAnalysis(
+            name="buffalo_s",
+            root=model_root,
+            providers=["CPUExecutionProvider"],
+        )
+        _face_analysis.prepare(ctx_id=0, det_size=(640, 640))
+        print("[face] InsightFace buffalo_s loaded OK")
+        return _face_analysis
+    except Exception as e:
+        print(f"[face] ERROR loading InsightFace: {e}")
+        return None
+
+
+def retry_on_dns_error(max_retries=3, delay=2):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    if "name resolution" in str(e).lower() and attempt < max_retries - 1:
+                        print(f"[retry] DNS error, attempt {attempt + 1}/{max_retries}")
+                        await asyncio.sleep(delay * (attempt + 1))
+                        continue
+                    raise
+        return wrapper
+    return decorator
+
+
+def _get_supabase():
+    try:
+        from app.core.supabase_client import supabase_admin
+        if supabase_admin is not None:
+            return supabase_admin
+    except Exception as e:
+        print(f"[supabase] import error: {e}")
+    return None
+
+
 @app.get("/api/health")
 async def health():
     return {
@@ -80,7 +129,7 @@ async def debug():
         "env_keys": sorted(os.environ.keys()),
         "modules": {},
     }
-    for mod in ["fastapi", "insightface", "onnxruntime", "cv2", "numpy", "sklearn", "supabase", "sqlalchemy", "scipy"]:
+    for mod in ["fastapi", "insightface", "onnxruntime", "cv2", "numpy", "sklearn", "supabase"]:
         try:
             __import__(mod)
             info["modules"][mod] = "OK"
@@ -106,7 +155,7 @@ async def options_handler(path: str):
         content={},
         headers={
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS,PATCH",
             "Access-Control-Allow-Headers": "Content-Type,Authorization",
             "Access-Control-Max-Age": "86400",
         },
@@ -135,8 +184,6 @@ except Exception as e:
 @app.on_event("startup")
 async def startup_event():
     print("[startup] Backend arrancado. Modelos se cargan bajo demanda.")
-    if settings:
-        print(f"[startup] ENV={settings.ENVIRONMENT}, MODELS_DIR={settings.MODELS_DIR}")
 
 
 @app.on_event("shutdown")
