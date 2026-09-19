@@ -32,13 +32,14 @@ _cors_origins = [
     "http://localhost:5173",
     "http://localhost:3000",
     "http://localhost:8080",
+    "https://reconocimiento-facial-xi.vercel.app",
+    "https://reconocimiento-facial-grupo-04-senati.vercel.app",
+    "https://reconocimiento-facial-obe7k366m-grupo-04-senati.vercel.app",
 ]
 
 try:
     from app.core.config import get_settings
     settings = get_settings()
-    if settings.VERCEL_URL:
-        _cors_origins.append(f"https://{settings.VERCEL_URL}")
     if settings.CORS_ORIGINS:
         _cors_origins.extend(
             [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
@@ -51,9 +52,9 @@ except Exception as e:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https://reconocimiento-facial-.*\.vercel\.app",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 
