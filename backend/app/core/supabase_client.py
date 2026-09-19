@@ -1,15 +1,24 @@
-from supabase import create_client, Client
+try:
+    from supabase import create_client, Client
+    _SUPABASE_AVAILABLE = True
+except ImportError as e:
+    print(f"[supabase_client] WARNING: supabase not available: {e}")
+    Client = None
+    _SUPABASE_AVAILABLE = False
+
 from app.core.config import get_settings
-from app.core.logging_config import logger
 
 settings = get_settings()
 
-supabase_admin: Client = None
-supabase_client: Client = None
+supabase_admin = None
+supabase_client = None
 
 
 def _init_supabase():
     global supabase_admin, supabase_client
+    if not _SUPABASE_AVAILABLE:
+        print("[supabase_client] Skipping init - supabase not installed")
+        return
     try:
         supabase_admin = create_client(
             settings.SUPABASE_URL,
@@ -19,13 +28,13 @@ def _init_supabase():
             settings.SUPABASE_URL,
             settings.SUPABASE_ANON_KEY,
         )
-        logger.info(f"Supabase connected: {settings.SUPABASE_URL}")
+        print(f"[supabase_client] Connected: {settings.SUPABASE_URL}")
     except Exception as e:
-        logger.warning(f"Supabase connection failed: {e}")
-        logger.warning("Running in offline mode - some features unavailable")
+        print(f"[supabase_client] Connection failed: {e}")
+        print("[supabase_client] Running offline - some features unavailable")
 
 
 try:
     _init_supabase()
-except Exception:
-    pass
+except Exception as e:
+    print(f"[supabase_client] Init error: {e}")
