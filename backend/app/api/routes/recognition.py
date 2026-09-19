@@ -24,7 +24,7 @@ async def reconocer(imagen: UploadFile = File(...)):
         from app.services.audit_service import audit_service
         from app.services.probability_service import probability_service
 
-        print(f"[reconocimiento] Iniciando procesamiento de imagen")
+        print(f"[reconocimiento] === INICIO ===")
         print(f"[reconocimiento] Modelo cargado: {face_service._initialized}")
 
         if not face_service._initialized:
@@ -34,50 +34,73 @@ async def reconocer(imagen: UploadFile = File(...)):
             )
 
         image_bytes = await imagen.read()
-        print(f"[reconocimiento] Imagen bytes: {len(image_bytes)}")
+        print(f"[reconocimiento] Imagen: {len(image_bytes)} bytes")
 
+        print(f"[reconocimiento] Paso 1: Obteniendo embedding...")
         face_data = face_service.get_embedding_with_quality(image_bytes)
         embedding = face_data["embedding"]
+        print(f"[reconocimiento] Embedding: shape={embedding.shape}")
 
+        print(f"[reconocimiento] Paso 2: Buscando en pgvector...")
         matches = vector_store.search_similar(
             query_embedding=embedding,
             threshold=settings.UMBRAL_SIMILITUD,
             match_count=5,
         )
+        print(f"[reconocimiento] Matches encontrados: {len(matches)}")
 
         if not matches:
-            audit_service.log_recognition(
-                persona_id=None,
-                similitud=0.0,
-                distancia=1.0,
-                umbral=settings.UMBRAL_SIMILITUD,
-                coincide=False,
-            )
+            print(f"[reconocimiento] Sin matches, registrando en audit...")
+            try:
+                audit_service.log_recognition(
+                    persona_id=None,
+                    similitud=0.0,
+                    distancia=1.0,
+                    umbral=settings.UMBRAL_SIMILITUD,
+                    coincide=False,
+                )
+                print(f"[reconocimiento] Audit registrado OK")
+            except Exception as e:
+                print(f"[reconocimiento] ERROR audit: {type(e).__name__}: {e}")
             return {"success": True, "coincide": False, "resultado": None}
 
         best_match = matches[0]
+        print(f"[reconocimiento] Mejor match: persona_id={best_match.get('persona_id')}, similitud={best_match.get('similitud')}")
+
         features = {
             "similitud": best_match["similitud"],
             "distancia": best_match["distancia"],
             "calidad_imagen": face_data["quality"],
             "iluminacion": face_data["illumination"],
         }
-        prob = probability_service.predecir(features)
+        print(f"[reconocimiento] Paso 3: Predecir probabilidad...")
+        try:
+            prob = probability_service.predecir(features)
+            print(f"[reconocimiento] Probabilidad: {prob}")
+        except Exception as e:
+            print(f"[reconocimiento] ERROR probabilidad: {type(e).__name__}: {e}")
+            prob = None
 
-        audit_service.log_recognition(
-            persona_id=best_match["persona_id"],
-            similitud=best_match["similitud"],
-            distancia=best_match["distancia"],
-            umbral=settings.UMBRAL_SIMILITUD,
-            coincide=True,
-            probabilidad_calibrada=prob,
-        )
+        print(f"[reconocimiento] Paso 4: Registrando en audit...")
+        try:
+            audit_service.log_recognition(
+                persona_id=best_match["persona_id"],
+                similitud=best_match["similitud"],
+                distancia=best_match["distancia"],
+                umbral=settings.UMBRAL_SIMILITUD,
+                coincide=True,
+                probabilidad_calibrada=prob,
+            )
+            print(f"[reconocimiento] Audit registrado OK")
+        except Exception as e:
+            print(f"[reconocimiento] ERROR audit: {type(e).__name__}: {e}")
 
+        print(f"[reconocimiento] === FIN OK ===")
         return {
             "success": True,
             "resultado": {
                 "persona_id": best_match["persona_id"],
-                "nombre": best_match["nombre"],
+                "nombre": best_match.get("nombre", "N/A"),
                 "similitud": round(best_match["similitud"], 4),
                 "distancia": round(best_match["distancia"], 4),
                 "umbral": settings.UMBRAL_SIMILITUD,
@@ -88,8 +111,8 @@ async def reconocer(imagen: UploadFile = File(...)):
             },
             "top_matches": [
                 {
-                    "persona_id": m["persona_id"],
-                    "nombre": m["nombre"],
+                    "persona_id": m.get("persona_id"),
+                    "nombre": m.get("nombre", "N/A"),
                     "similitud": round(m["similitud"], 4),
                     "distancia": round(m["distancia"], 4),
                 }
@@ -97,11 +120,16 @@ async def reconocer(imagen: UploadFile = File(...)):
             ],
         }
 
+    except HTTPException:
+        raise
     except ValueError as e:
+        print(f"[reconocimiento] ValueError: {e}")
         return {"success": True, "coincide": False, "resultado": None, "detail": str(e)}
     except Exception as e:
-        logger.error(f"Recognition error: {e}")
-        raise HTTPException(status_code=500, detail="Error en el reconocimiento")
+        print(f"[reconocimiento] ERROR GENERAL: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error en el reconocimiento: {str(e)[:200]}")
 
 
 @router.get("/historial")
