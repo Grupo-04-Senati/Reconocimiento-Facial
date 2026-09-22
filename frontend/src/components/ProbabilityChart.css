@@ -1,0 +1,20 @@
+.probability-chart {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.prob-chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .probability-chart {
+    grid-template-columns: 1fr;
+  }
+}

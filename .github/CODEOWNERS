@@ -1,0 +1,8 @@
+*.py @Grupo-04-Senati/backend-team
+*.tsx @Grupo-04-Senati/frontend-team
+*.ts @Grupo-04-Senati/frontend-team
+*.sql @Grupo-04-Senati/database-team
+*.yaml @Grupo-04-Senati/devops-team
+*.yml @Grupo-04-Senati/devops-team
+Dockerfile* @Grupo-04-Senati/devops-team
+docker-compose* @Grupo-04-Senati/devops-team

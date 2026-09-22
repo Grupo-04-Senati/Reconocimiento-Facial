@@ -1,0 +1,102 @@
+.probabilidades { max-width: 1200px; margin: 0 auto; }
+.prob-header { margin-bottom: 24px; }
+.prob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) { .prob-grid { grid-template-columns: 1fr; } }
+
+.prob-mode-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.prob-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.prob-mode-btn:hover { border-color: var(--accent-border); }
+.prob-mode-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 1px var(--accent-border);
+}
+
+.prob-config { display: flex; flex-direction: column; gap: 16px; }
+.prob-field { display: flex; flex-direction: column; gap: 6px; }
+.prob-field label { font-size: 13px; font-weight: 600; color: var(--text-h); }
+.prob-field select {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 13px;
+  outline: none;
+}
+.prob-field select:focus { border-color: var(--accent-border); }
+
+.prob-modo-btns { display: flex; gap: 8px; }
+.prob-modo-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.prob-modo-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+.prob-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.prob-upload-btn:hover { border-color: var(--accent-border); color: var(--accent); }
+
+.prob-run-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.prob-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.prob-run-btn:hover:not(:disabled) { opacity: 0.9; }
+
+.prob-metric { display: flex; flex-direction: column; gap: 4px; padding: 10px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; text-align: center; }
+.prob-metric-label { font-size: 10px; color: var(--text); font-weight: 500; text-transform: uppercase; }
+.prob-metric-val { font-size: 14px; font-weight: 700; color: var(--text-h); }

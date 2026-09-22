@@ -1,0 +1,7 @@
+.reco-features { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.reco-feature { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+.reco-feature svg { color: var(--accent); flex-shrink: 0; }
+.reco-feat-label { font-size: 13px; color: var(--text); flex: 1; }
+.reco-feat-val { font-size: 13px; font-weight: 600; color: var(--text-h); }
+.reco-feat-val.match { color: #22c55e; }
+.reco-feat-val.nomatch { color: #ef4444; }

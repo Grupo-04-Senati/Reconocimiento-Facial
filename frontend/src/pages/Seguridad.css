@@ -1,0 +1,84 @@
+.seguridad { display: flex; flex-direction: column; gap: 24px; }
+
+.seg-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.seg-info { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); }
+.seg-add-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 10px; border: none; background: var(--accent); color: white; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.2s; }
+.seg-add-btn:hover { opacity: 0.9; }
+
+.seg-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.seg-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+.seg-table th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text); border-bottom: 1px solid var(--border); }
+.seg-table td { padding: 12px 14px; font-size: 13px; color: var(--text-h); border-bottom: 1px solid var(--border); vertical-align: middle; }
+.seg-table tr:hover td { background: var(--accent-bg); }
+
+.seg-name-cell { font-weight: 500; }
+.seg-name-inner { display: flex; align-items: center; gap: 10px; }
+.seg-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+
+.seg-role-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+.role-admin { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.role-operador { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.role-analista { background: rgba(37, 99, 235, 0.15); color: #2563eb; }
+
+.seg-role-select-dropdown {
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.seg-role-select-dropdown:focus { border-color: var(--accent-border); }
+.seg-role-select-dropdown.role-admin { border-color: rgba(239, 68, 68, 0.4); }
+.seg-role-select-dropdown.role-operador { border-color: rgba(59, 130, 246, 0.4); }
+.seg-role-select-dropdown.role-analista { border-color: rgba(37, 99, 235, 0.4); }
+
+.seg-perms { display: flex; gap: 4px; flex-wrap: wrap; }
+.seg-perm { padding: 2px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 11px; color: var(--text); }
+
+.seg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.seg-dot.on { background: #22c55e; }
+.seg-dot.off { background: #ef4444; }
+
+.seg-actions { white-space: nowrap; }
+.seg-toggle-btn, .seg-del-btn { display: inline-flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px; color: var(--text); cursor: pointer; transition: all 0.2s; }
+.seg-toggle-btn:hover { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.seg-del-btn:hover { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+.seg-role-select { display: flex; flex-direction: column; gap: 6px; }
+.seg-role-select label { font-size: 13px; font-weight: 500; color: var(--text-h); }
+.seg-role-options { display: flex; gap: 6px; }
+.seg-role-opt { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.seg-role-opt.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent-border); }
+.seg-role-desc { font-size: 12px; color: var(--text); padding: 8px 10px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+
+.seg-matrix-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.seg-matrix { width: 100%; border-collapse: collapse; min-width: 400px; }
+.seg-matrix th { padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--text-h); border-bottom: 1px solid var(--border); text-align: center; }
+.seg-matrix th:first-child { text-align: left; }
+.seg-matrix td { padding: 10px 14px; font-size: 13px; color: var(--text-h); border-bottom: 1px solid var(--border); text-align: center; }
+.seg-matrix td:first-child { text-align: left; font-weight: 500; }
+.perm-yes { color: #22c55e; font-weight: 600; }
+.perm-no { color: #ef4444; font-weight: 500; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+.modal { background: var(--code-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 440px; }
+.modal h3 { margin: 0 0 16px; font-size: 18px; color: var(--text-h); }
+.modal-form { display: flex; flex-direction: column; gap: 10px; }
+.modal-form input { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text-h); font-size: 14px; outline: none; transition: border-color 0.2s; }
+.modal-form input:focus { border-color: var(--accent-border); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+.cancel-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; cursor: pointer; transition: all 0.2s; }
+.cancel-btn:hover { border-color: var(--accent-border); }
+.confirm-btn { padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent); color: white; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.2s; }
+.confirm-btn:hover { opacity: 0.9; }
+
+@media (max-width: 640px) {
+  .seg-header { flex-direction: column; align-items: stretch; }
+  .seg-add-btn { justify-content: center; }
+  .seg-role-options { flex-direction: column; }
+}
